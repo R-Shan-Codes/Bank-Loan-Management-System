@@ -40,8 +40,9 @@ public class LoanService {
         if(!"APPROVED".equals(loanDAO.findStatus(loanId))) throw new IllegalArgumentException("Repayments can only be recorded for approved loans.");
         double outstanding=repaymentDAO.getOutstandingPrincipal(loanId);
         if(amount>outstanding*1.05) throw new IllegalArgumentException("Payment exceeds the estimated outstanding balance.");
+        double emi=loanDAO.getApprovedEmi(loanId);
         repaymentDAO.create(new Repayment(loanId,amount,LocalDate.now(),note==null?"":note));
-        loanDAO.advanceDueDate(loanId);
+        if(amount>=emi) loanDAO.advanceDueDate(loanId);
     }
 
     public CustomerDAO customers(){return customerDAO;}
