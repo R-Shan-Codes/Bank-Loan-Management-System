@@ -65,6 +65,14 @@ public class LoanDAO {
         }
     }
 
+    public String findStatus(long loanId) throws SQLException {
+        try(Connection c=DatabaseConnection.getConnection(); PreparedStatement ps=c.prepareStatement("SELECT status FROM loans WHERE loan_id=?")) {
+            ps.setLong(1,loanId);
+            try(ResultSet rs=ps.executeQuery()) { if(rs.next()) return rs.getString(1); }
+        }
+        throw new SQLException("Loan not found: "+loanId);
+    }
+
     public double getApprovedEmi(long loanId) throws SQLException {
         try (Connection c = DatabaseConnection.getConnection(); CallableStatement call = c.prepareCall("{CALL generate_emi_schedule(?)}")) {
             call.setLong(1, loanId);
