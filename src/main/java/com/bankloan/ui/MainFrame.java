@@ -107,9 +107,19 @@ public class MainFrame extends JFrame {
     }
     private JPanel reportPanel() {
         JPanel p=new JPanel(new BorderLayout(8,8));p.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+        DefaultTableModel reportModel=readOnlyModel("Loan ID","Customer","Loan type","Status","Estimated outstanding (₹)");
+        JTable table=new JTable(reportModel);table.setRowHeight(25);
         JButton refresh=new JButton("Refresh outstanding report");
-        refresh.addActionListener(e->refreshLoans());
-        JTable table=new JTable(loanModel);table.setRowHeight(25);p.add(refresh,BorderLayout.NORTH);p.add(new JScrollPane(table),BorderLayout.CENTER);
+        refresh.addActionListener(e->runAction(()->{
+            reportModel.setRowCount(0);
+            for(String[] row:service.loans().findAllSummary()) {
+                if(!"APPROVED".equals(row[6])) continue;
+                long id=Long.parseLong(row[0]);
+                double balance=service.repayments().getOutstandingPrincipal(id);
+                reportModel.addRow(new Object[]{row[0],row[1],row[2],row[6],String.format("%.2f",balance)});
+            }
+        }));
+        p.add(refresh,BorderLayout.NORTH);p.add(new JScrollPane(table),BorderLayout.CENTER);
         return p;
     }
     private JPanel duePanel() {
